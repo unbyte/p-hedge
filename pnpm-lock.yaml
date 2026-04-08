@@ -41,7 +41,11 @@ importers:
 
   packages/p-dynamic: {}
 
-  packages/p-hedge: {}
+  packages/p-hedge:
+    dependencies:
+      p-dynamic:
+        specifier: workspace:*
+        version: link:../p-dynamic
 
 packages:
 

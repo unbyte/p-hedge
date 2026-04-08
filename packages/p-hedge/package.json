@@ -33,6 +33,9 @@
     "build": "tsup",
     "prepublishOnly": "pnpm build"
   },
+  "dependencies": {
+    "p-dynamic": "workspace:*"
+  },
   "publishConfig": {
     "main": "lib/index.cjs",
     "module": "lib/index.js",
