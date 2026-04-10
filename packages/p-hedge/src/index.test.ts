@@ -93,6 +93,37 @@ describe('phedge', () => {
     vi.useRealTimers()
   })
 
+  it('rejects with aborted error when external signal fires', async () => {
+    vi.useFakeTimers()
+    const signals: AbortSignal[] = []
+    const factory = vi.fn((_i: number, signal: AbortSignal) => {
+      signals.push(signal)
+      return pending<number>()
+    })
+    const controller = new AbortController()
+    const p = phedge(factory, { delay: 100, maxHedges: 1, signal: controller.signal })
+    p.catch(() => {})
+    await vi.advanceTimersByTimeAsync(100)
+    controller.abort('cancelled')
+    const err = await p.catch((e) => e)
+    expect(err).toBeInstanceOf(Error)
+    expect(err.message).toBe('aborted')
+    expect(err.cause).toBe('cancelled')
+    expect(signals.every((s) => s.aborted)).toBe(true)
+    vi.useRealTimers()
+  })
+
+  it('rejects immediately when signal is already aborted', async () => {
+    const controller = new AbortController()
+    controller.abort('pre-cancelled')
+    const factory = vi.fn((_i: number, _s: AbortSignal) => Promise.resolve(42))
+    const err = await phedge(factory, { signal: controller.signal }).catch((e) => e)
+    expect(err).toBeInstanceOf(Error)
+    expect(err.message).toBe('aborted')
+    expect(err.cause).toBe('pre-cancelled')
+    expect(factory).not.toHaveBeenCalled()
+  })
+
   it('rejects with timeout error and aborts all controllers', async () => {
     vi.useFakeTimers()
     const signals: AbortSignal[] = []
