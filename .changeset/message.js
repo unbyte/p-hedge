@@ -1,11 +1,6 @@
 module.exports = {
   async getVersionMessage(releasePlan, _options) {
-    const pkg = releasePlan.releases.find((release) => release.name === 'p-hedge')
-
-    if (!pkg) {
-      throw new Error(`main package not found in release plan`)
-    }
-
-    return `chore(release): ${pkg.newVersion}`
+    const lines = releasePlan.releases.map((r) => `- ${r.name}@${r.newVersion}`)
+    return `chore: release packages\n\n${lines.join('\n')}`
   },
 }
